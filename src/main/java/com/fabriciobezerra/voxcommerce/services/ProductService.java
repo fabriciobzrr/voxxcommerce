@@ -4,6 +4,8 @@ import com.fabriciobezerra.voxcommerce.dto.ProductDTO;
 import com.fabriciobezerra.voxcommerce.entities.Product;
 import com.fabriciobezerra.voxcommerce.repositories.ProductRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -14,9 +16,14 @@ public class ProductService {
     private ProductRepository repository;
 
     @Transactional(readOnly = true)
+    public Page<ProductDTO> findAll(Pageable pageable) {
+        Page<Product> result = repository.findAll(pageable);
+        return result.map(x -> new ProductDTO(x));
+    }
+
+    @Transactional(readOnly = true)
     public ProductDTO findById(Long id) {
         Product product = repository.findById(id).get();
-        ProductDTO dto = new ProductDTO(product);
-        return dto;
+        return new ProductDTO(product);
     }
 }
