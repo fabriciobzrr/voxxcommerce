@@ -3,9 +3,17 @@ package com.fabriciobezerra.voxcommerce.entities;
 import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @Table(name = "tb_order_item")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class OrderItem {
 
     @EmbeddedId
@@ -13,9 +21,6 @@ public class OrderItem {
 
     private Integer quantity;
     private Double price;
-
-    public OrderItem() {
-    }
 
     public OrderItem(Order order, Product product, Integer quantity, Double price) {
         id.setOrder(order);
@@ -38,21 +43,5 @@ public class OrderItem {
 
     public void setProduct(Product product) {
         id.setProduct(product);
-    }
-
-    public Integer getQuantity() {
-        return quantity;
-    }
-
-    public void setQuantity(Integer quantity) {
-        this.quantity = quantity;
-    }
-
-    public Double getPrice() {
-        return price;
-    }
-
-    public void setPrice(Double price) {
-        this.price = price;
     }
 }

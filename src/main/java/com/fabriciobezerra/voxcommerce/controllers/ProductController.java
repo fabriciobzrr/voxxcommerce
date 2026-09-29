@@ -3,7 +3,7 @@ package com.fabriciobezerra.voxcommerce.controllers;
 import com.fabriciobezerra.voxcommerce.dto.ProductDTO;
 import com.fabriciobezerra.voxcommerce.services.ProductService;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
@@ -14,14 +14,14 @@ import java.net.URI;
 
 @RestController
 @RequestMapping(value = "/products")
+@RequiredArgsConstructor
 public class ProductController {
 
-    @Autowired
-    private ProductService service;
+    private final ProductService service;
 
     @GetMapping
-    public ResponseEntity<Page<ProductDTO>> findAll(Pageable pageable) {
-        Page<ProductDTO> dto = service.findAll(pageable);
+    public ResponseEntity<Page<ProductDTO>> findAll(@RequestParam(value = "name", defaultValue = "") String name, Pageable pageable) {
+        Page<ProductDTO> dto = service.findAll(name, pageable);
         return ResponseEntity.ok(dto);
     }
 
