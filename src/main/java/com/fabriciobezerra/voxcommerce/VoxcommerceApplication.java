@@ -7,9 +7,9 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 @SpringBootApplication
 @RequiredArgsConstructor
 public class VoxcommerceApplication {
-
     public static void main(String[] args) {
         SpringApplication.run(VoxcommerceApplication.class, args);
 
     }
+
 }
