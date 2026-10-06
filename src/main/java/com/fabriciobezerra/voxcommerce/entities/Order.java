@@ -6,7 +6,6 @@ import lombok.*;
 import java.time.Instant;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 
 @Entity
@@ -15,7 +14,7 @@ import java.util.Set;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@EqualsAndHashCode
+@EqualsAndHashCode(of = "id")
 public class Order {
 
     @Id
@@ -31,25 +30,14 @@ public class Order {
     private User client;
 
     @OneToOne(mappedBy = "order", cascade = CascadeType.ALL)
+    @Setter(AccessLevel.NONE)
     private Payment payment;
 
     @OneToMany(mappedBy = "id.order")
+    @Setter(AccessLevel.NONE)
     private Set<OrderItem> items = new HashSet<>();
 
     public List<Product> getProducts() {
         return items.stream().map(p -> p.getProduct()).toList();
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (o == null || getClass() != o.getClass()) return false;
-
-        Order order = (Order) o;
-        return Objects.equals(id, order.id);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hashCode(id);
     }
 }
