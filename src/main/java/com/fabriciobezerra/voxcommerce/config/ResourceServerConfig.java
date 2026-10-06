@@ -19,13 +19,15 @@ public class ResourceServerConfig {
 
         // 2. Define as regras de quem pode acessar cada caminho (endpoint)
         http.authorizeHttpRequests(authorize -> authorize
-                // Libera o console do banco H2 para desenvolvimento
-                .requestMatchers("/h2-console/**").permitAll()
-
-                // Exemplo de rota pública (descomentar se precisar liberar leitura sem login) - .requestMatchers(HttpMethod.GET, "/products/**").permitAll()
-
-                // Exige que qualquer outra requisição na API esteja autenticada
-                .anyRequest().authenticated()
+                        // Libera o console do banco H2 para desenvolvimento
+//                .requestMatchers(HttpMethod.GET, "/h2-console/**").permitAll()
+//                .requestMatchers(HttpMethod.GET, "/products/**").permitAll()
+                        // Exemplo de rota pública (descomentar se precisar liberar leitura sem login) - .requestMatchers(HttpMethod.GET, "/products/**").permitAll()
+                        // Exige que qualquer outra requisição na API esteja autenticada
+//                        .anyRequest().authenticated()
+                
+                        // .anyRequest() e .permitAll() permitem que qualquer requisição seja permitida
+                        .anyRequest().permitAll()
         );
 
         // 3. Permite exibir as telas do H2 Console no navegador (desativa bloqueio de frames)
