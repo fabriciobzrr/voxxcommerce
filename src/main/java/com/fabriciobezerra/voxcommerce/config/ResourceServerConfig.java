@@ -24,9 +24,10 @@ public class ResourceServerConfig {
 //                .requestMatchers(HttpMethod.GET, "/products/**").permitAll()
                         // Exemplo de rota pública (descomentar se precisar liberar leitura sem login) - .requestMatchers(HttpMethod.GET, "/products/**").permitAll()
                         // Exige que qualquer outra requisição na API esteja autenticada
-//                        .anyRequest().authenticated()
-                
-                        // .anyRequest() e .permitAll() permitem que qualquer requisição seja permitida
+
+                        // Em conjunto com o .anyRequest() podemos utilizar o:
+                        // .permitAll() que permite acessar o endpoint de qualquer requisição
+                        // .authenticated() que permite somente acessar o endpoint quando estiver autenticado
                         .anyRequest().permitAll()
         );
 
