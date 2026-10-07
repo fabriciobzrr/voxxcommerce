@@ -1,64 +1,87 @@
 package com.fabriciobezerra.voxcommerce.config;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.security.autoconfigure.web.servlet.PathRequest;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
+import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
+import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.web.filter.CorsFilter;
+
+import java.util.Arrays;
 
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
 public class ResourceServerConfig {
-    @Bean
-    public PasswordEncoder getPasswordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
 
-    @Bean
-    @Order(2)
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        // 1. Desativa a proteção CSRF - APIs REST não usam sessão de navegador (são stateless), por isso desativamos essa proteção
-        http.csrf(csrf -> csrf.disable());
-
-        // 2. Define as regras de quem pode acessar cada caminho (endpoint)
-        http.authorizeHttpRequests(authorize -> authorize
-                        // Libera o console do banco H2 para desenvolvimento
-//                .requestMatchers(HttpMethod.GET, "/h2-console/**").permitAll()
-//                .requestMatchers(HttpMethod.GET, "/products/**").permitAll()
-                        // Exemplo de rota pública (descomentar se precisar liberar leitura sem login) - .requestMatchers(HttpMethod.GET, "/products/**").permitAll()
-                        // Exige que qualquer outra requisição na API esteja autenticada
-
-                        // Em conjunto com o .anyRequest() podemos utilizar o:
-                        // .permitAll() que permite acessar o endpoint de qualquer requisição
-                        // .authenticated() que permite somente acessar o endpoint quando estiver autenticado
-                        .anyRequest().permitAll()
-        );
-
-        // 3. Permite exibir as telas do H2 Console no navegador (desativa bloqueio de frames)
-        http.headers(headers -> headers.frameOptions(frame -> frame.disable()));
-
-        // 4. Configura a API para validar tokens JWT automaticamente quando chegarem no cabeçalho
-        http.oauth2ResourceServer(oauth2 -> oauth2.jwt(jwt -> {
-        }));
-
-        // 5. Constrói e devolve a corrente de filtros pronta para o Spring usar
-        return http.build();
-    }
+    @Value("${cors.origins}")
+    private String corsOrigins;
 
     @Bean
     @Profile("test")
     @Order(1)
     public SecurityFilterChain h2SecurityFilterChain(HttpSecurity http) throws Exception {
-        http.securityMatcher(PathRequest.toH2Console()).csrf(csrf -> csrf.disable())
-                .headers(header -> header.frameOptions(frameOption -> frameOption.disable()));
 
+        http.securityMatcher(PathRequest.toH2Console()).csrf(csrf -> csrf.disable())
+                .headers(headers -> headers.frameOptions(frameOptions -> frameOptions.disable()));
         return http.build();
+    }
+
+    @Bean
+    @Order(3)
+    public SecurityFilterChain rsSecurityFilterChain(HttpSecurity http) throws Exception {
+        http.csrf(csrf -> csrf.disable());
+        http.authorizeHttpRequests(authorize -> authorize.anyRequest().permitAll());
+        http.oauth2ResourceServer(oauth2ResourceServer -> oauth2ResourceServer.jwt(Customizer.withDefaults()));
+        http.cors(cors -> cors.configurationSource(corsConfigurationSource()));
+        return http.build();
+    }
+
+    @Bean
+    public JwtAuthenticationConverter jwtAuthenticationConverter() {
+        JwtGrantedAuthoritiesConverter grantedAuthoritiesConverter = new JwtGrantedAuthoritiesConverter();
+        grantedAuthoritiesConverter.setAuthoritiesClaimName("authorities");
+        grantedAuthoritiesConverter.setAuthorityPrefix("");
+
+        JwtAuthenticationConverter jwtAuthenticationConverter = new JwtAuthenticationConverter();
+        jwtAuthenticationConverter.setJwtGrantedAuthoritiesConverter(grantedAuthoritiesConverter);
+        return jwtAuthenticationConverter;
+    }
+
+    @Bean
+    CorsConfigurationSource corsConfigurationSource() {
+
+        String[] origins = corsOrigins.split(",");
+
+        CorsConfiguration corsConfig = new CorsConfiguration();
+        corsConfig.setAllowedOriginPatterns(Arrays.asList(origins));
+        corsConfig.setAllowedMethods(Arrays.asList("POST", "GET", "PUT", "DELETE", "PATCH"));
+        corsConfig.setAllowCredentials(true);
+        corsConfig.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type"));
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", corsConfig);
+        return source;
+    }
+
+    @Bean
+    FilterRegistrationBean<CorsFilter> filterRegistrationBeanCorsFilter() {
+        FilterRegistrationBean<CorsFilter> bean = new FilterRegistrationBean<>(
+                new CorsFilter(corsConfigurationSource()));
+        bean.setOrder(Ordered.HIGHEST_PRECEDENCE);
+        return bean;
     }
 }

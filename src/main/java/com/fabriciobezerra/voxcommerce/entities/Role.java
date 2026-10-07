@@ -10,15 +10,14 @@ import java.util.Set;
 @Entity
 @Table(name = "tb_role")
 @Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode()
 public class Role implements GrantedAuthority {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Setter
     private Long id;
-    @Setter
     private String authority;
 
     @ManyToMany(mappedBy = "roles")

@@ -10,23 +10,19 @@ import java.util.Set;
 @Entity
 @Table(name = "tb_product")
 @Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode(of = "id")
 public class Product {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Setter
     private Long id;
-    @Setter
     private String name;
 
     @Column(columnDefinition = "TEXT")
-    @Setter
     private String description;
-    @Setter
     private Double price;
-    @Setter
     private String imgUrl;
 
     @ManyToMany
