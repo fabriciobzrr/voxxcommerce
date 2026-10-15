@@ -49,89 +49,99 @@ import java.util.UUID;
 @Configuration
 public class AuthorizationServerConfig {
 
+    // Pega o identificador do cliente configurado no application.properties
     @Value("${security.client-id}")
     private String clientId;
 
+    // Pega a senha secreta do cliente configurada no application.properties
     @Value("${security.client-secret}")
     private String clientSecret;
 
+    // Pega o tempo de validade do token JWT em segundos vindo do application.properties
     @Value("${security.jwt.duration}")
     private Integer jwtDurationSeconds;
 
+    // Injeta o serviço que busca os dados do usuário no banco de dados
     @Autowired
     private UserDetailsService userDetailsService;
 
+    // Define a regra de segurança e a ordem de prioridade para a rota de autenticação
     @Bean
     @Order(2)
     public SecurityFilterChain asSecurityFilterChain(HttpSecurity http) throws Exception {
 
+        // Aplica as configurações do servidor de autorização apenas nas rotas de oauth2 e well-known
         http.securityMatcher("/oauth2/**", "/.well-known/**").with(new OAuth2AuthorizationServerConfigurer(), Customizer.withDefaults());
 
-        // @formatter:off
-		http.getConfigurer(OAuth2AuthorizationServerConfigurer.class)
-			.tokenEndpoint(tokenEndpoint -> tokenEndpoint
-				.accessTokenRequestConverter(new CustomPasswordAuthenticationConverter())
-				.authenticationProvider(new CustomPasswordAuthenticationProvider(authorizationService(), tokenGenerator(), userDetailsService, passwordEncoder())));
+        // Configura o endpoint de token para usar nosso conversor e provedor de login customizados
+        http.getConfigurer(OAuth2AuthorizationServerConfigurer.class)
+                .tokenEndpoint(tokenEndpoint -> tokenEndpoint
+                        .accessTokenRequestConverter(new CustomPasswordAuthenticationConverter())
+                        .authenticationProvider(new CustomPasswordAuthenticationProvider(authorizationService(), tokenGenerator(), userDetailsService, passwordEncoder())));
 
-		http.oauth2ResourceServer(oauth2ResourceServer -> oauth2ResourceServer.jwt(Customizer.withDefaults()));
-		// @formatter:on
+        // Configura o servidor para também conseguir ler tokens JWT se necessário
+        http.oauth2ResourceServer(oauth2ResourceServer -> oauth2ResourceServer.jwt(Customizer.withDefaults()));
 
         return http.build();
     }
 
+    // Cria um serviço em memória para gerenciar os tokens e sessões de autorização ativos
     @Bean
     public OAuth2AuthorizationService authorizationService() {
         return new InMemoryOAuth2AuthorizationService();
     }
 
+    // Cria um serviço em memória para gerenciar os consentimentos dados pelos usuários
     @Bean
     public OAuth2AuthorizationConsentService oAuth2AuthorizationConsentService() {
         return new InMemoryOAuth2AuthorizationConsentService();
     }
 
+    // Define o codificador de senha usando o algoritmo BCrypt para segurança
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
+    // Cadastra e configura a aplicação cliente que tem permissão para pedir tokens
     @Bean
     public RegisteredClientRepository registeredClientRepository() {
-        // @formatter:off
-		RegisteredClient registeredClient = RegisteredClient
-			.withId(UUID.randomUUID().toString())
-			.clientId(clientId)
-			.clientSecret(passwordEncoder().encode(clientSecret))
-			.scope("read")
-			.scope("write")
-			.authorizationGrantType(new AuthorizationGrantType("password"))
-			.tokenSettings(tokenSettings())
-			.clientSettings(clientSettings())
-			.build();
-		// @formatter:on
+        RegisteredClient registeredClient = RegisteredClient
+                .withId(UUID.randomUUID().toString())
+                .clientId(clientId)
+                .clientSecret(passwordEncoder().encode(clientSecret))
+                .scope("read")
+                .scope("write")
+                .authorizationGrantType(new AuthorizationGrantType("password"))
+                .tokenSettings(tokenSettings())
+                .clientSettings(clientSettings())
+                .build();
 
         return new InMemoryRegisteredClientRepository(registeredClient);
     }
 
+    // Define as regras de tempo de vida e formato do token gerado
     @Bean
     public TokenSettings tokenSettings() {
-        // @formatter:off
-		return TokenSettings.builder()
-			.accessTokenFormat(OAuth2TokenFormat.SELF_CONTAINED)
-			.accessTokenTimeToLive(Duration.ofSeconds(jwtDurationSeconds))
-			.build();
-		// @formatter:on
+        return TokenSettings.builder()
+                .accessTokenFormat(OAuth2TokenFormat.SELF_CONTAINED)
+                .accessTokenTimeToLive(Duration.ofSeconds(jwtDurationSeconds))
+                .build();
     }
 
+    // Mantém as configurações padrão do cliente
     @Bean
     public ClientSettings clientSettings() {
         return ClientSettings.builder().build();
     }
 
+    // Mantém as configurações padrão do servidor de autorização
     @Bean
     public AuthorizationServerSettings authorizationServerSettings() {
         return AuthorizationServerSettings.builder().build();
     }
 
+    // Cria o gerador responsável por montar e assinar o token JWT
     @Bean
     public OAuth2TokenGenerator<? extends OAuth2Token> tokenGenerator() {
         NimbusJwtEncoder jwtEncoder = new NimbusJwtEncoder(jwkSource());
@@ -141,6 +151,7 @@ public class AuthorizationServerConfig {
         return new DelegatingOAuth2TokenGenerator(jwtGenerator, accessTokenGenerator);
     }
 
+    // Adiciona informações extras (como username e permissões) dentro do token gerado
     @Bean
     public OAuth2TokenCustomizer<JwtEncodingContext> tokenCustomizer() {
         return context -> {
@@ -148,20 +159,20 @@ public class AuthorizationServerConfig {
             CustomUserAuthorities user = (CustomUserAuthorities) principal.getDetails();
             List<String> authorities = user.getAuthorities().stream().map(x -> x.getAuthority()).toList();
             if (context.getTokenType().getValue().equals("access_token")) {
-                // @formatter:off
-				context.getClaims()
-					.claim("authorities", authorities)
-					.claim("username", user.getUsername());
-				// @formatter:on
+                context.getClaims()
+                        .claim("authorities", authorities)
+                        .claim("username", user.getUsername());
             }
         };
     }
 
+    // Cria o decodificador para ler e validar a assinatura dos tokens JWT
     @Bean
     public JwtDecoder jwtDecoder(JWKSource<SecurityContext> jwkSource) {
         return OAuth2AuthorizationServerConfiguration.jwtDecoder(jwkSource);
     }
 
+    // Disponibiliza o conjunto de chaves criptográficas (JWK) para o servidor
     @Bean
     public JWKSource<SecurityContext> jwkSource() {
         RSAKey rsaKey = generateRsa();
@@ -169,6 +180,7 @@ public class AuthorizationServerConfig {
         return (jwkSelector, securityContext) -> jwkSelector.select(jwkSet);
     }
 
+    // Constrói a chave RSA com a chave pública, privada e um ID único
     private static RSAKey generateRsa() {
         KeyPair keyPair = generateRsaKey();
         RSAPublicKey publicKey = (RSAPublicKey) keyPair.getPublic();
@@ -176,6 +188,7 @@ public class AuthorizationServerConfig {
         return new RSAKey.Builder(publicKey).privateKey(privateKey).keyID(UUID.randomUUID().toString()).build();
     }
 
+    // Gera um par de chaves RSA de 2048 bits para assinar os tokens com segurança
     private static KeyPair generateRsaKey() {
         KeyPair keyPair;
         try {
