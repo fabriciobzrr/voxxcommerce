@@ -1,10 +1,7 @@
 package com.fabriciobezerra.voxcommerce.entities;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
@@ -31,10 +28,11 @@ public class User implements UserDetails {
     private String password;
 
     @OneToMany(mappedBy = "client")
-    private List<Order> orders = new ArrayList<Order>();
+    private List<Order> orders = new ArrayList<>();
 
     @ManyToMany
     @JoinTable(name = "tb_user_role", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "role_id"))
+    @Setter(AccessLevel.NONE)
     private Set<Role> roles = new HashSet<>();
 
     @Override
