@@ -1,6 +1,7 @@
 package com.fabriciobezerra.voxcommerce.controllers;
 
-import com.fabriciobezerra.voxcommerce.dto.ProductDTO;
+import com.fabriciobezerra.voxcommerce.dto.ProductDto;
+import com.fabriciobezerra.voxcommerce.dto.ProductMinDto;
 import com.fabriciobezerra.voxcommerce.services.ProductService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -21,20 +22,20 @@ public class ProductController {
     private final ProductService service;
 
     @GetMapping
-    public ResponseEntity<Page<ProductDTO>> findAll(@RequestParam(value = "name", defaultValue = "") String name, Pageable pageable) {
-        Page<ProductDTO> dto = service.findAll(name, pageable);
+    public ResponseEntity<Page<ProductMinDto>> findAll(@RequestParam(value = "name", defaultValue = "") String name, Pageable pageable) {
+        Page<ProductMinDto> dto = service.findAll(name, pageable);
         return ResponseEntity.ok(dto);
     }
-    
+
     @GetMapping("/{id}")
-    public ResponseEntity<ProductDTO> findById(@PathVariable Long id) {
-        ProductDTO dto = service.findById(id);
+    public ResponseEntity<ProductDto> findById(@PathVariable Long id) {
+        ProductDto dto = service.findById(id);
         return ResponseEntity.ok(dto);
     }
 
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     @PostMapping
-    public ResponseEntity<ProductDTO> insert(@Valid @RequestBody ProductDTO dto) {
+    public ResponseEntity<ProductDto> insert(@Valid @RequestBody ProductDto dto) {
         dto = service.insert(dto);
         URI uri = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(dto.getId()).toUri();
         return ResponseEntity.created(uri).body(dto);
@@ -42,7 +43,7 @@ public class ProductController {
 
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     @PutMapping("/{id}")
-    public ResponseEntity<ProductDTO> update(@PathVariable Long id, @Valid @RequestBody ProductDTO dto) {
+    public ResponseEntity<ProductDto> update(@PathVariable Long id, @Valid @RequestBody ProductDto dto) {
         dto = service.update(id, dto);
         return ResponseEntity.ok(dto);
     }

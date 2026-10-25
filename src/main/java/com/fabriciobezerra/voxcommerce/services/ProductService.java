@@ -1,6 +1,7 @@
 package com.fabriciobezerra.voxcommerce.services;
 
-import com.fabriciobezerra.voxcommerce.dto.ProductDTO;
+import com.fabriciobezerra.voxcommerce.dto.ProductDto;
+import com.fabriciobezerra.voxcommerce.dto.ProductMinDto;
 import com.fabriciobezerra.voxcommerce.entities.Product;
 import com.fabriciobezerra.voxcommerce.repositories.ProductRepository;
 import com.fabriciobezerra.voxcommerce.services.exceptions.DatabaseException;
@@ -21,32 +22,32 @@ public class ProductService {
     private final ProductRepository repository;
 
     @Transactional(readOnly = true)
-    public Page<ProductDTO> findAll(String name, Pageable pageable) {
+    public Page<ProductMinDto> findAll(String name, Pageable pageable) {
         Page<Product> result = repository.searchByName(name, pageable);
-        return result.map(x -> new ProductDTO(x));
+        return result.map(x -> new ProductMinDto(x));
     }
 
     @Transactional(readOnly = true)
-    public ProductDTO findById(Long id) {
+    public ProductDto findById(Long id) {
         Product product = repository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Recurso não encontrado! Id: " + id + "."));
-        return new ProductDTO(product);
+        return new ProductDto(product);
     }
 
     @Transactional
-    public ProductDTO insert(ProductDTO dto) {
+    public ProductDto insert(ProductDto dto) {
         Product entity = new Product();
         copyDtoToEntity(dto, entity);
         entity = repository.save(entity);
-        return new ProductDTO(entity);
+        return new ProductDto(entity);
     }
 
     @Transactional
-    public ProductDTO update(Long id, ProductDTO dto) {
+    public ProductDto update(Long id, ProductDto dto) {
         try {
             Product entity = repository.getReferenceById(id);
             copyDtoToEntity(dto, entity);
             entity = repository.save(entity);
-            return new ProductDTO(entity);
+            return new ProductDto(entity);
         } catch (EntityNotFoundException e) {
             throw new ResourceNotFoundException("Recurso não encontrado! Id: " + id + ".");
         }
@@ -64,7 +65,7 @@ public class ProductService {
         }
     }
 
-    private void copyDtoToEntity(ProductDTO dto, Product entity) {
+    private void copyDtoToEntity(ProductDto dto, Product entity) {
         entity.setName(dto.getName());
         entity.setDescription(dto.getDescription());
         entity.setImgUrl(dto.getImgUrl());

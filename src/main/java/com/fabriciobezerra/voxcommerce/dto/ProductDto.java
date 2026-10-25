@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
-public class ProductDTO {
+public class ProductDto {
     private Long id;
 
     @Size(min = 3, max = 80, message = "Nome precisa ter de 3 a 80 caracteres")
@@ -26,7 +26,7 @@ public class ProductDTO {
     private Double price;
     private String imgUrl;
 
-    public ProductDTO(Product entity) {
+    public ProductDto(Product entity) {
         id = entity.getId();
         name = entity.getName();
         description = entity.getDescription();
