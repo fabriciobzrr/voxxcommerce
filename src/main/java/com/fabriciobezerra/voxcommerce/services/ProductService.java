@@ -78,7 +78,6 @@ public class ProductService {
         entity.getCategories().clear();
         for (CategoryDto catDto : dto.getCategories()) {
             Category category = categoryRepository.getReferenceById(catDto.getId());
-            category.setId(catDto.getId());
             entity.getCategories().add(category);
         }
     }
