@@ -1,8 +1,11 @@
 package com.fabriciobezerra.voxcommerce.services;
 
+import com.fabriciobezerra.voxcommerce.dto.CategoryDto;
 import com.fabriciobezerra.voxcommerce.dto.ProductDto;
 import com.fabriciobezerra.voxcommerce.dto.ProductMinDto;
+import com.fabriciobezerra.voxcommerce.entities.Category;
 import com.fabriciobezerra.voxcommerce.entities.Product;
+import com.fabriciobezerra.voxcommerce.repositories.CategoryRepository;
 import com.fabriciobezerra.voxcommerce.repositories.ProductRepository;
 import com.fabriciobezerra.voxcommerce.services.exceptions.DatabaseException;
 import com.fabriciobezerra.voxcommerce.services.exceptions.ResourceNotFoundException;
@@ -20,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class ProductService {
 
     private final ProductRepository repository;
+    private final CategoryRepository categoryRepository;
 
     @Transactional(readOnly = true)
     public Page<ProductMinDto> findAll(String name, Pageable pageable) {
@@ -70,6 +74,13 @@ public class ProductService {
         entity.setDescription(dto.getDescription());
         entity.setImgUrl(dto.getImgUrl());
         entity.setPrice(dto.getPrice());
+
+        entity.getCategories().clear();
+        for (CategoryDto catDto : dto.getCategories()) {
+            Category category = categoryRepository.getReferenceById(catDto.getId());
+            category.setId(catDto.getId());
+            entity.getCategories().add(category);
+        }
     }
 
 }

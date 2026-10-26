@@ -1,12 +1,15 @@
 package com.fabriciobezerra.voxcommerce.dto;
 
+import com.fabriciobezerra.voxcommerce.entities.Category;
 import com.fabriciobezerra.voxcommerce.entities.Product;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter
 @AllArgsConstructor
@@ -26,11 +29,20 @@ public class ProductDto {
     private Double price;
     private String imgUrl;
 
+    @Setter(AccessLevel.NONE)
+    @NotEmpty(message = "Deve ter pelo menos uma categoria")
+    private List<CategoryDto> categories = new ArrayList<>();
+
     public ProductDto(Product entity) {
         id = entity.getId();
         name = entity.getName();
         description = entity.getDescription();
         price = entity.getPrice();
         imgUrl = entity.getImgUrl();
+
+        for (Category category : entity.getCategories()) {
+            categories.add(new CategoryDto(category));
+        }
+
     }
 }
