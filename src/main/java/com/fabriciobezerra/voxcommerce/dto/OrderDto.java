@@ -3,6 +3,7 @@ package com.fabriciobezerra.voxcommerce.dto;
 import com.fabriciobezerra.voxcommerce.entities.Order;
 import com.fabriciobezerra.voxcommerce.entities.OrderItem;
 import com.fabriciobezerra.voxcommerce.entities.OrderStatus;
+import jakarta.validation.constraints.NotEmpty;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -23,6 +24,7 @@ public class OrderDto {
 
     private PaymentDto payment;
 
+    @NotEmpty(message = "O pedido deve ter pelo menos um item")
     private List<OrderItemDto> items = new ArrayList<>();
 
     public OrderDto(Long id, Instant moment, OrderStatus status, ClientDto client, PaymentDto payment) {

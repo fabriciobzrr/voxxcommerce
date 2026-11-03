@@ -30,7 +30,6 @@ public class Order {
     private User client;
 
     @OneToOne(mappedBy = "order", cascade = CascadeType.ALL)
-    @Setter(AccessLevel.NONE)
     private Payment payment;
 
     @OneToMany(mappedBy = "id.order")
